@@ -103,22 +103,20 @@
     <div class="player-container">
         <img id="welcome-img" src="welcome.jpg" alt="Welcome" onclick="playRandomSong()">
         
-        <div id="status">Tap image or Next to play</div>
+        <div id="status">Tap image or Play to start</div>
 
         <div class="controls">
-            <!-- Pause Button initialized with standard Pause SVG -->
+            <!-- Button initialized as a PLAY button -->
             <button class="btn" id="btn-pause" onclick="togglePause()">
-                <span id="btn-icon-container" style="display: flex; align-items: center;"><svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg></span>
-                <span id="pause-text">Pause</span>
+                <span id="btn-icon-container" style="display: flex; align-items: center;"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></span>
+                <span id="pause-text">Play</span>
             </button>
             
-            <!-- Restart Button with clean Reset/Return Arrow SVG -->
             <button class="btn" onclick="restartSong()">
                 <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
                 <span>Restart</span>
             </button>
             
-            <!-- Next Button with Skip Forward SVG -->
             <button class="btn btn-next" onclick="playRandomSong()">
                 <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
                 <span>Next</span>
@@ -126,6 +124,7 @@
         </div>
     </div>
 
+    <!-- Hidden audio element -->
     <audio id="audio-player"></audio>
 
     <script>
@@ -135,7 +134,7 @@
         const iconContainer = document.getElementById('btn-icon-container');
         let currentSongNum = null;
 
-        // Raw SVG code strings so we don't need external networks
+        // Raw SVG graphics
         const pauseSvg = '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
         const playSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
 
@@ -155,13 +154,17 @@
                     updateStatus(`Playing track ${formattedNum}`, true);
                 })
                 .catch(error => {
-                    updateStatus("Tap image to enable audio playback", false);
+                    updateStatus("Tap image or Play to enable audio playback", false);
                     console.log("Playback blocked:", error);
                 });
         }
 
         function togglePause() {
-            if (!audioPlayer.src) return;
+            // If no song has been picked yet, start a fresh random song
+            if (!audioPlayer.src) {
+                playRandomSong();
+                return;
+            }
             
             if (!audioPlayer.paused) {
                 audioPlayer.pause();
