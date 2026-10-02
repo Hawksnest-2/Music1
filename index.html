@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NFC Random Music Player</title>
-    <!-- Lightweight and clean icon library -->
-    <script src="https://unpkg.com"></script>
+    <!-- Fixed, reliable CDN link for Lucide Icons -->
+    <script src="https://jsdelivr.net"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -66,7 +66,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px; /* Space between icon and text */
+            gap: 8px; /* Balanced space between icon and text */
         }
         .btn:hover {
             background-color: #3e3e3e;
@@ -81,13 +81,15 @@
         .btn-next:hover {
             background-color: #1ed760;
         }
-        /* Icon styling adjustment */
-        .btn i, .btn svg {
-            width: 16px;
-            height: 16px;
+        /* Ensures icon alignment aligns tightly with the button text label */
+        .btn svg {
+            width: 18px;
+            height: 18px;
+            display: inline-block;
+            vertical-align: middle;
         }
         #status {
-            margin-top: 15px;
+            margin-top: 20px;
             font-size: 0.9rem;
             color: #b3b3b3;
             height: 20px;
@@ -102,15 +104,14 @@
         <div id="status">Tap image or Next to play</div>
 
         <div class="controls">
-            <!-- Dynamic button that alternates text and icons -->
             <button class="btn" id="btn-pause" onclick="togglePause()">
                 <i data-lucide="pause"></i> <span id="pause-text">Pause</span>
             </button>
             <button class="btn" onclick="restartSong()">
-                <i data-lucide="rotate-ccw"></i> Restart
+                <i data-lucide="rotate-ccw"></i> <span>Restart</span>
             </button>
             <button class="btn btn-next" onclick="playRandomSong()">
-                <i data-lucide="skip-forward"></i> Next
+                <i data-lucide="skip-forward"></i> <span>Next</span>
             </button>
         </div>
     </div>
@@ -120,7 +121,6 @@
     <script>
         const audioPlayer = document.getElementById('audio-player');
         const statusText = document.getElementById('status');
-        const pauseText = document.getElementById('pause-text');
         const btnPause = document.getElementById('btn-pause');
         let currentSongNum = null;
 
@@ -162,7 +162,6 @@
             if (!audioPlayer.src) return;
             audioPlayer.currentTime = 0;
             
-            // If it was paused, play it automatically upon restart
             if (audioPlayer.paused) {
                 audioPlayer.play()
                     .then(() => {
@@ -175,19 +174,18 @@
             }
         }
 
-        // Helper to update text, toggle Play/Pause text, and refresh Lucide icons
         function updateStatus(text, isPlaying) {
             statusText.textContent = text;
             
             if (isPlaying) {
-                pauseText.textContent = "Pause";
                 btnPause.innerHTML = '<i data-lucide="pause"></i> <span id="pause-text">Pause</span>';
             } else {
-                pauseText.textContent = "Play";
                 btnPause.innerHTML = '<i data-lucide="play"></i> <span id="pause-text">Play</span>';
             }
-            // Re-render the icons so the changes take effect on-screen
-            lucide.createIcons();
+            // Re-render fresh icons via script setup
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
         }
 
         audioPlayer.addEventListener('ended', () => {
@@ -195,8 +193,10 @@
             playRandomSong();
         });
 
-        // Initialize the icons on page load
-        lucide.createIcons();
+        // Initial launch icon parser
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
     </script>
 </body>
 </html>
