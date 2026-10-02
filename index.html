@@ -3,69 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NFC Music Player</title>
+    <title>NFC Random Music Player</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
             margin: 0;
-            padding: 0;
-            background-color: #000;
+            padding: 20px;
+            background-color: #121212;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
-            overflow: hidden;
-            font-family: sans-serif;
+            justify-content: center;
+            min-height: 100vh;
         }
-        .container {
+        .player-container {
             text-align: center;
             max-width: 100%;
-            max-height: 100%;
+            width: 400px;
         }
-        img {
-            max-width: 90vw;
-            max-height: 90vh;
+        #welcome-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
             cursor: pointer;
-            object-fit: contain;
-            transition: transform 0.1s ease;
-            -webkit-tap-highlight-color: transparent;
+            transition: transform 0.2s ease;
         }
-        img:active {
+        #welcome-img:active {
             transform: scale(0.98);
+        }
+        .controls {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background-color: #282828;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            min-width: 100px;
+        }
+        .btn:hover {
+            background-color: #3e3e3e;
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+        .btn-next {
+            background-color: #1db954; /* Spotify green for the main action */
+            color: black;
+        }
+        .btn-next:hover {
+            background-color: #1ed760;
+        }
+        #status {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #b3b3b3;
+            height: 20px;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <!-- Clicking the image triggers a new random song -->
-        <img src="welcome.jpg" alt="Welcome" onclick="playRandomSong()">
+    <div class="player-container">
+        <!-- Tapping the image still plays a new random song -->
+        <img id="welcome-img" src="welcome.jpg" alt="Welcome" onclick="playRandomSong()">
+        
+        <div id="status">Tap image or Next to play</div>
+
+        <div class="controls">
+            <button class="btn" onclick="pauseSong()">Pause</button>
+            <button class="btn" onclick="stopSong()">Stop</button>
+            <button class="btn btn-next" onclick="playRandomSong()">Next</button>
+        </div>
     </div>
 
     <!-- Hidden audio element -->
-    <audio id="audioPlayer"></audio>
+    <audio id="audio-player"></audio>
 
     <script>
-        // Total number of mp3 files in the Music1 folder
-        const totalSongs = 20;
-        const audioPlayer = document.getElementById('audioPlayer');
+        const audioPlayer = document.getElementById('audio-player');
+        const statusText = document.getElementById('status');
+        let currentSongNum = null;
 
         function playRandomSong() {
-            // Generate a random number between 1 and 20
-            const randomIndex = Math.floor(Math.random() * totalSongs) + 1;
+            let nextSongNum;
             
-            // Format number to 2 digits (e.g., 1 -> "01", 12 -> "12")
-            const fileNumber = String(randomIndex).padStart(2, '0');
+            // Prevent playing the exact same song twice in a row if possible
+            do {
+                nextSongNum = Math.floor(Math.random() * 20) + 1;
+            } while (nextSongNum === currentSongNum && nextSongNum !== null);
             
-            // Construct the path relative to the repository root
-            const songPath = `Music1/${fileNumber}.mp3`;
+            currentSongNum = nextSongNum;
             
-            // Load and play the new song
-            audioPlayer.src = songPath;
-            audioPlayer.play().catch(error => {
-                console.log("Playback failed or interrupted:", error);
-            });
+            // Format number to match 01.mp3 - 20.mp3 format
+            const formattedNum = String(currentSongNum).padStart(2, '0');
+            
+            // Set source and play
+            audioPlayer.src = `Music1/${formattedNum).mp3`;
+            audioPlayer.play()
+                .then(() => {
+                    statusText.textContent = `Playing track ${formattedNum}`;
+                })
+                .catch(error => {
+                    statusText.textContent = "Tap image to enable audio playback";
+                    console.log("Playback blocked or interrupted:", error);
+                });
         }
-    </script>
 
+        function pauseSong() {
+            if (!audioPlayer.paused && audioPlayer.src) {
+                audioPlayer.pause();
+                statusText.textContent = "Paused";
+            } else if (audioPlayer.paused && audioPlayer.src) {
+                audioPlayer.play();
+                const formattedNum = String(currentSongNum).padStart(2, '0');
+                statusText.textContent = `Playing track ${formattedNum}`;
+            }
+        }
+
+        function stopSong() {
+            audioPlayer.pause();
+            audioPlayer.currentTime = 0;
+            statusText.textContent = "Stopped";
+        }
+
+        // Auto-advance feature: Picks a new random song when the current one finishes
+        audioPlayer.addEventListener('ended', () => {
+            statusText.textContent = "Song ended. Loading next...";
+            playRandomSong();
+        });
+    </script>
 </body>
 </html>
