@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NFC Random Music Player</title>
-    <!-- Fixed, reliable CDN link for Lucide Icons -->
-    <script src="https://jsdelivr.net"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -66,7 +64,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px; /* Balanced space between icon and text */
+            gap: 8px;
         }
         .btn:hover {
             background-color: #3e3e3e;
@@ -81,12 +79,16 @@
         .btn-next:hover {
             background-color: #1ed760;
         }
-        /* Ensures icon alignment aligns tightly with the button text label */
+        /* Inline SVG Icon Settings */
         .btn svg {
             width: 18px;
             height: 18px;
+            stroke: currentColor;
+            stroke-width: 2.5;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
             display: inline-block;
-            vertical-align: middle;
         }
         #status {
             margin-top: 20px;
@@ -104,14 +106,22 @@
         <div id="status">Tap image or Next to play</div>
 
         <div class="controls">
+            <!-- Pause Button initialized with standard Pause SVG -->
             <button class="btn" id="btn-pause" onclick="togglePause()">
-                <i data-lucide="pause"></i> <span id="pause-text">Pause</span>
+                <span id="btn-icon-container" style="display: flex; align-items: center;"><svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg></span>
+                <span id="pause-text">Pause</span>
             </button>
+            
+            <!-- Restart Button with clean Reset/Return Arrow SVG -->
             <button class="btn" onclick="restartSong()">
-                <i data-lucide="rotate-ccw"></i> <span>Restart</span>
+                <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                <span>Restart</span>
             </button>
+            
+            <!-- Next Button with Skip Forward SVG -->
             <button class="btn btn-next" onclick="playRandomSong()">
-                <i data-lucide="skip-forward"></i> <span>Next</span>
+                <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+                <span>Next</span>
             </button>
         </div>
     </div>
@@ -121,8 +131,13 @@
     <script>
         const audioPlayer = document.getElementById('audio-player');
         const statusText = document.getElementById('status');
-        const btnPause = document.getElementById('btn-pause');
+        const pauseText = document.getElementById('pause-text');
+        const iconContainer = document.getElementById('btn-icon-container');
         let currentSongNum = null;
+
+        // Raw SVG code strings so we don't need external networks
+        const pauseSvg = '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+        const playSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
 
         function playRandomSong() {
             let nextSongNum;
@@ -178,13 +193,11 @@
             statusText.textContent = text;
             
             if (isPlaying) {
-                btnPause.innerHTML = '<i data-lucide="pause"></i> <span id="pause-text">Pause</span>';
+                pauseText.textContent = "Pause";
+                iconContainer.innerHTML = pauseSvg;
             } else {
-                btnPause.innerHTML = '<i data-lucide="play"></i> <span id="pause-text">Play</span>';
-            }
-            // Re-render fresh icons via script setup
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
+                pauseText.textContent = "Play";
+                iconContainer.innerHTML = playSvg;
             }
         }
 
@@ -192,11 +205,6 @@
             statusText.textContent = "Song ended. Loading next...";
             playRandomSong();
         });
-
-        // Initial launch icon parser
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
     </script>
 </body>
 </html>
