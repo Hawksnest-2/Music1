@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NFC Random Music Player</title>
+    <!-- Lightweight and clean icon library -->
+    <script src="https://unpkg.com"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -19,7 +21,7 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            overflow: hidden; /* Prevents unwanted scrolling */
+            overflow: hidden;
         }
         .player-container {
             text-align: center;
@@ -31,7 +33,7 @@
         }
         #welcome-img {
             max-width: 100%;
-            max-height: 55vh; /* Constrains image height so buttons always fit on screen */
+            max-height: 55vh;
             object-fit: contain;
             height: auto;
             border-radius: 12px;
@@ -53,14 +55,18 @@
             background-color: #282828;
             color: white;
             border: none;
-            padding: 12px 20px;
-            font-size: 1rem;
+            padding: 12px 16px;
+            font-size: 0.95rem;
             font-weight: 600;
             border-radius: 30px;
             cursor: pointer;
             transition: background-color 0.2s, transform 0.1s;
-            flex: 1; /* Makes buttons share space evenly */
-            max-width: 110px;
+            flex: 1;
+            max-width: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px; /* Space between icon and text */
         }
         .btn:hover {
             background-color: #3e3e3e;
@@ -75,6 +81,11 @@
         .btn-next:hover {
             background-color: #1ed760;
         }
+        /* Icon styling adjustment */
+        .btn i, .btn svg {
+            width: 16px;
+            height: 16px;
+        }
         #status {
             margin-top: 15px;
             font-size: 0.9rem;
@@ -86,76 +97,106 @@
 <body>
 
     <div class="player-container">
-        <!-- Tapping the image plays a new random song -->
         <img id="welcome-img" src="welcome.jpg" alt="Welcome" onclick="playRandomSong()">
         
         <div id="status">Tap image or Next to play</div>
 
         <div class="controls">
-            <button class="btn" onclick="pauseSong()">Pause</button>
-            <button class="btn" onclick="stopSong()">Stop</button>
-            <button class="btn btn-next" onclick="playRandomSong()">Next</button>
+            <!-- Dynamic button that alternates text and icons -->
+            <button class="btn" id="btn-pause" onclick="togglePause()">
+                <i data-lucide="pause"></i> <span id="pause-text">Pause</span>
+            </button>
+            <button class="btn" onclick="restartSong()">
+                <i data-lucide="rotate-ccw"></i> Restart
+            </button>
+            <button class="btn btn-next" onclick="playRandomSong()">
+                <i data-lucide="skip-forward"></i> Next
+            </button>
         </div>
     </div>
 
-    <!-- Hidden audio element -->
     <audio id="audio-player"></audio>
 
     <script>
         const audioPlayer = document.getElementById('audio-player');
         const statusText = document.getElementById('status');
+        const pauseText = document.getElementById('pause-text');
+        const btnPause = document.getElementById('btn-pause');
         let currentSongNum = null;
 
         function playRandomSong() {
             let nextSongNum;
             
-            // Prevent playing the exact same song twice in a row
             do {
                 nextSongNum = Math.floor(Math.random() * 20) + 1;
             } while (nextSongNum === currentSongNum);
             
             currentSongNum = nextSongNum;
-            
-            // Format number to match 01.mp3 - 20.mp3 format
             const formattedNum = String(currentSongNum).padStart(2, '0');
             
-            // Set source and play
             audioPlayer.src = `Music1/${formattedNum}.mp3`;
             audioPlayer.play()
                 .then(() => {
-                    statusText.textContent = `Playing track ${formattedNum}`;
+                    updateStatus(`Playing track ${formattedNum}`, true);
                 })
                 .catch(error => {
-                    statusText.textContent = "Tap image to enable audio playback";
-                    console.log("Playback blocked or interrupted:", error);
+                    updateStatus("Tap image to enable audio playback", false);
+                    console.log("Playback blocked:", error);
                 });
         }
 
-        function pauseSong() {
+        function togglePause() {
             if (!audioPlayer.src) return;
             
             if (!audioPlayer.paused) {
                 audioPlayer.pause();
-                statusText.textContent = "Paused";
+                updateStatus("Paused", false);
             } else {
                 audioPlayer.play();
                 const formattedNum = String(currentSongNum).padStart(2, '0');
-                statusText.textContent = `Playing track ${formattedNum}`;
+                updateStatus(`Playing track ${formattedNum}`, true);
             }
         }
 
-        function stopSong() {
+        function restartSong() {
             if (!audioPlayer.src) return;
-            audioPlayer.pause();
             audioPlayer.currentTime = 0;
-            statusText.textContent = "Stopped";
+            
+            // If it was paused, play it automatically upon restart
+            if (audioPlayer.paused) {
+                audioPlayer.play()
+                    .then(() => {
+                        const formattedNum = String(currentSongNum).padStart(2, '0');
+                        updateStatus(`Playing track ${formattedNum}`, true);
+                    });
+            } else {
+                const formattedNum = String(currentSongNum).padStart(2, '0');
+                updateStatus(`Playing track ${formattedNum}`, true);
+            }
         }
 
-        // Auto-advance feature: Picks a new random song when the current one finishes
+        // Helper to update text, toggle Play/Pause text, and refresh Lucide icons
+        function updateStatus(text, isPlaying) {
+            statusText.textContent = text;
+            
+            if (isPlaying) {
+                pauseText.textContent = "Pause";
+                btnPause.innerHTML = '<i data-lucide="pause"></i> <span id="pause-text">Pause</span>';
+            } else {
+                pauseText.textContent = "Play";
+                btnPause.innerHTML = '<i data-lucide="play"></i> <span id="pause-text">Play</span>';
+            }
+            // Re-render the icons so the changes take effect on-screen
+            lucide.createIcons();
+        }
+
         audioPlayer.addEventListener('ended', () => {
             statusText.textContent = "Song ended. Loading next...";
             playRandomSong();
         });
+
+        // Initialize the icons on page load
+        lucide.createIcons();
     </script>
 </body>
 </html>
