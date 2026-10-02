@@ -10,7 +10,7 @@
         }
         body {
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             background-color: #121212;
             color: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -19,14 +19,20 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
+            overflow: hidden; /* Prevents unwanted scrolling */
         }
         .player-container {
             text-align: center;
             max-width: 100%;
             width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         #welcome-img {
             max-width: 100%;
+            max-height: 55vh; /* Constrains image height so buttons always fit on screen */
+            object-fit: contain;
             height: auto;
             border-radius: 12px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
@@ -37,23 +43,24 @@
             transform: scale(0.98);
         }
         .controls {
-            margin-top: 25px;
+            margin-top: 20px;
             display: flex;
             justify-content: center;
             gap: 12px;
-            flex-wrap: wrap;
+            width: 100%;
         }
         .btn {
             background-color: #282828;
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 12px 20px;
             font-size: 1rem;
             font-weight: 600;
             border-radius: 30px;
             cursor: pointer;
             transition: background-color 0.2s, transform 0.1s;
-            min-width: 100px;
+            flex: 1; /* Makes buttons share space evenly */
+            max-width: 110px;
         }
         .btn:hover {
             background-color: #3e3e3e;
@@ -62,7 +69,7 @@
             transform: scale(0.95);
         }
         .btn-next {
-            background-color: #1db954; /* Spotify green for the main action */
+            background-color: #1db954; 
             color: black;
         }
         .btn-next:hover {
@@ -79,7 +86,7 @@
 <body>
 
     <div class="player-container">
-        <!-- Tapping the image still plays a new random song -->
+        <!-- Tapping the image plays a new random song -->
         <img id="welcome-img" src="welcome.jpg" alt="Welcome" onclick="playRandomSong()">
         
         <div id="status">Tap image or Next to play</div>
@@ -102,10 +109,10 @@
         function playRandomSong() {
             let nextSongNum;
             
-            // Prevent playing the exact same song twice in a row if possible
+            // Prevent playing the exact same song twice in a row
             do {
                 nextSongNum = Math.floor(Math.random() * 20) + 1;
-            } while (nextSongNum === currentSongNum && nextSongNum !== null);
+            } while (nextSongNum === currentSongNum);
             
             currentSongNum = nextSongNum;
             
@@ -113,7 +120,7 @@
             const formattedNum = String(currentSongNum).padStart(2, '0');
             
             // Set source and play
-            audioPlayer.src = `Music1/${formattedNum).mp3`;
+            audioPlayer.src = `Music1/${formattedNum}.mp3`;
             audioPlayer.play()
                 .then(() => {
                     statusText.textContent = `Playing track ${formattedNum}`;
@@ -125,10 +132,12 @@
         }
 
         function pauseSong() {
-            if (!audioPlayer.paused && audioPlayer.src) {
+            if (!audioPlayer.src) return;
+            
+            if (!audioPlayer.paused) {
                 audioPlayer.pause();
                 statusText.textContent = "Paused";
-            } else if (audioPlayer.paused && audioPlayer.src) {
+            } else {
                 audioPlayer.play();
                 const formattedNum = String(currentSongNum).padStart(2, '0');
                 statusText.textContent = `Playing track ${formattedNum}`;
@@ -136,6 +145,7 @@
         }
 
         function stopSong() {
+            if (!audioPlayer.src) return;
             audioPlayer.pause();
             audioPlayer.currentTime = 0;
             statusText.textContent = "Stopped";
